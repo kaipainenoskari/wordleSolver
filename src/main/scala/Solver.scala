@@ -56,12 +56,12 @@ object Solver extends App {
 
     var truth = true
     while truth do
-        var guess = readLine("guess \n")
+        var guess = readLine("guess \n").toLowerCase()
         if guess == "exit" then truth = false
-        else if guess.toLowerCase() == "list" then
+        else if guess == "list" then
             println(wordList)
         else
-            if guess.toLowerCase() == "answer" then
+            if guess == "answer" then
                 guess = wordList(rand.nextInt(wordList.size))
                 println(guess)
             val colors = readLine("colors \n")
