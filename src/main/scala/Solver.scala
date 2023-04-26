@@ -54,6 +54,9 @@ object Solver extends App {
 
         return filteredWords
 
+    // todo: function for determining the best guess aka guess that minimizes the amount of correct answers.
+    def bestGuess() = ???
+
     var truth = true
     while truth do
         var guess = readLine("guess \n").toLowerCase()
