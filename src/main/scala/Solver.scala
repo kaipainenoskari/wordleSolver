@@ -14,14 +14,11 @@ object Solver extends App {
     var indexOfBlanks = Map[Int, Set[Char]]()
 
     def filterWords(words: List[String], guess: String, colors: String): List[String] =
-        val c = colors.toList
-        indexOfGreens = merge(indexOfGreens, c.zipWithIndex.filter(x => x._1 == 'g').map(x => (x._2, Set(guess(x._2)))).toMap)
-        indexOfYellows = merge(indexOfYellows, c.zipWithIndex.filter(x => x._1 == 'y').map(x => (x._2, Set(guess(x._2)))).toMap)
-        indexOfBlanks = merge(indexOfBlanks, c.zipWithIndex.filter(x => x._1 == ' ').map(x => (x._2, Set(guess(x._2)))).toMap)
+        val c = colors.toList.zipWithIndex
+        indexOfGreens = merge(indexOfGreens, c.filter(x => x._1 == 'g').map(x => (x._2, Set(guess(x._2)))).toMap)
+        indexOfYellows = merge(indexOfYellows, c.filter(x => x._1 == 'y').map(x => (x._2, Set(guess(x._2)))).toMap)
+        indexOfBlanks = merge(indexOfBlanks, c.filter(x => x._1 == ' ').map(x => (x._2, Set(guess(x._2)))).toMap)
 
-        println(indexOfGreens)
-        println(indexOfYellows)
-        println(indexOfBlanks)
         var filteredWords = words
         filteredWords = filteredWords
                         .filter(word =>
@@ -54,8 +51,27 @@ object Solver extends App {
 
         return filteredWords
 
+
+    def permutations(word: List[String]): List[String] =
+        var res = List[String]()
+        for a <- word do
+            for b <- word do
+                for c <- word do
+                    for d <- word do
+                        for e <- word do
+                            res = res.appended(a+b+c+d+e)
+        res
+
+
     // todo: function for determining the best guess aka guess that minimizes the amount of correct answers.
-    def bestGuess() = ???
+    def bestGuess(wordList: List[String], guess: String, colors: String): String = 
+        var validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/valid-wordle-words.txt").getLines.toList
+        var sizes: Map[Int, String] = Map[Int, String]()
+        val perm = permutations(List("g", "y", " "))
+        while validWords.nonEmpty do
+            sizes += filterWords(wordList, validWords.head, colors).size -> validWords.head 
+            validWords = validWords.tail
+        sizes(sizes.keys.min)
 
     var truth = true
     while truth do
