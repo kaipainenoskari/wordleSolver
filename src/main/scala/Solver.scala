@@ -105,8 +105,8 @@ object Solver extends App {
                 //println("permutations -> " + perm)
             if minOfMax == 1 then
                 return current_word
-            i = 0
             validWords = validWords.tail
+        println(sizes.map((word, list) => (word, list.max)).toVector.sortBy(_._2).take(10))
         sizes.map((word, list) => (word, list.max)).minBy(_._2)._1
 
     var truth = true
