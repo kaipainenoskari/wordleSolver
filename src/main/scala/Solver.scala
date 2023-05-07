@@ -1,6 +1,7 @@
 import scala.io.Source
 import scala.io.StdIn.readLine
-import java.util.Random
+import scala.util.Random
+import scala.math.*
 
 object Solver extends App {
     var wordList = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/wordle-answers-alphabetical.txt").getLines.toVector
@@ -76,12 +77,16 @@ object Solver extends App {
 
 
     // todo: function for determining the best guess aka guess that minimizes the amount of correct answers.
-    def bestGuess(wordList: Seq[String]): String = 
+    def bestGuess(wordList: Seq[String]): Unit = 
         var validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/valid-wordle-words.txt").getLines.toVector
+        val startSize = validWords.length.toDouble
         var sizes = scala.collection.mutable.Map[String, Vector[Int]]()
         var minOfMax = Int.MaxValue
+        print("   % PERCENTAGE")
         while validWords.nonEmpty do
             val current_word = validWords.head
+            val sizeNow = validWords.length
+            printf("\r%2d", (math.ceil(((startSize - sizeNow) / startSize) * 100)).toInt)
             //println(current_word)
             
             val perm = if (indexOfGreens.isEmpty && indexOfYellows.isEmpty && indexOfBlanks.isEmpty) then permutations((Vector("g", "y", " "))).toVector else minimizePermutations(current_word).toVector
@@ -99,15 +104,18 @@ object Solver extends App {
             val candidateSize = if sizes.keySet.contains(current_word) then sizes(current_word).max else Int.MaxValue
             if candidateSize < minOfMax then
                 minOfMax = candidateSize
+                /*
                 println("word -> " + current_word)
                 println("worst case length -> " + minOfMax)
                 println("amount of permutations -> " + perm.length)
+                */
                 //println("permutations -> " + perm)
-            if minOfMax == 1 then
-                return current_word
+            if candidateSize == 1 && wordList.contains(current_word) then
+                println("\n" + current_word)
+                return
             validWords = validWords.tail
-        println(sizes.map((word, list) => (word, list.max)).toVector.sortBy(_._2).take(10))
-        sizes.map((word, list) => (word, list.max)).minBy(_._2)._1
+        println("\n" + sizes.map((word, list) => (word, list.max)).toVector.sortBy(_._2).take(10).mkString(", "))
+        //sizes.map((word, list) => (word, list.max)).minBy(_._2)._1
 
     var truth = true
     while truth do
@@ -115,25 +123,28 @@ object Solver extends App {
         if guess == "exit" then truth = false
         else if guess == "list" then
             println(wordList)
+        else if guess == "answer" then
+            if wordList.length == 1 then
+                println(wordList.head)
+            else if wordList.length == 2 then
+                println(rand.shuffle(wordList).head)
+            else
+                val t1 = System.nanoTime()
+                bestGuess(wordList)
+                val duration = (System.nanoTime() - t1) / 1e9d
+                println("Duration " + duration.toInt + "s")
         else
-            if guess == "answer" then
-                if wordList.length == 1 then
-                    guess = wordList.head
-                else
-                    val t1 = System.nanoTime()
-                    guess = bestGuess(wordList)
-                    val duration = (System.nanoTime() - t1) / 1e9d
-                    println("Duration " + duration + "s")
-                println(guess)
             val colors = readLine("colors \n")
+            if colors == "ggggg" then
+                truth = false
+            else
+                wordList = filterWords(wordList, guess, colors).toVector
 
-            wordList = filterWords(wordList, guess, colors).toVector
-
-            val c = colors.toList.zipWithIndex
-            indexOfGreens = merge(indexOfGreens, c.filter(x => x._1 == 'g').map(x => (x._2, Set(guess(x._2)))).toMap)
-            indexOfYellows = merge(indexOfYellows, c.filter(x => x._1 == 'y').map(x => (x._2, Set(guess(x._2)))).toMap)
-            indexOfBlanks = merge(indexOfBlanks, c.filter(x => x._1 == ' ').map(x => (x._2, Set(guess(x._2)))).toMap)
-            
-            if wordList.size <= 10 then
-                println(wordList)
+                val c = colors.toList.zipWithIndex
+                indexOfGreens = merge(indexOfGreens, c.filter(x => x._1 == 'g').map(x => (x._2, Set(guess(x._2)))).toMap)
+                indexOfYellows = merge(indexOfYellows, c.filter(x => x._1 == 'y').map(x => (x._2, Set(guess(x._2)))).toMap)
+                indexOfBlanks = merge(indexOfBlanks, c.filter(x => x._1 == ' ').map(x => (x._2, Set(guess(x._2)))).toMap)
+                
+                if wordList.size <= 10 then
+                    println(wordList.mkString(", "))
 }
