@@ -82,11 +82,10 @@ object Solver extends App {
         val startSize = validWords.length.toDouble
         var sizes = scala.collection.mutable.Map[String, Vector[Int]]()
         var minOfMax = Int.MaxValue
-        print("   % PERCENTAGE")
         while validWords.nonEmpty do
             val current_word = validWords.head
             val sizeNow = validWords.length
-            printf("\r%2d", (math.ceil(((startSize - sizeNow) / startSize) * 100)).toInt)
+            print("\rRunning... %d %%".format(math.ceil(((startSize - sizeNow) / startSize) * 100).toInt))
             //println(current_word)
             
             val perm = if (indexOfGreens.isEmpty && indexOfYellows.isEmpty && indexOfBlanks.isEmpty) then permutations((Vector("g", "y", " "))).toVector else minimizePermutations(current_word).toVector
@@ -124,17 +123,18 @@ object Solver extends App {
         else if guess == "list" then
             println(wordList)
         else if guess == "answer" then
-            if wordList.length == 1 then
-                println(wordList.head)
-            else if wordList.length == 2 then
+            if wordList.length == 1 || wordList.length == 2 then
                 println(rand.shuffle(wordList).head)
             else
                 val t1 = System.nanoTime()
                 bestGuess(wordList)
                 val duration = (System.nanoTime() - t1) / 1e9d
                 println("Duration " + duration.toInt + "s")
-        else
-            val colors = readLine("colors \n")
+        else if guess.length == 5 then
+            var colors = readLine("colors \n").toLowerCase()
+            while colors.length != 5 && colors.filter(char => char != 'g' || char != 'y' || char != ' ').length != 0 do
+                println("Incorrect input...")
+                colors = readLine("colors \n").toLowerCase()
             if colors == "ggggg" then
                 truth = false
             else
@@ -146,5 +146,10 @@ object Solver extends App {
                 indexOfBlanks = merge(indexOfBlanks, c.filter(x => x._1 == ' ').map(x => (x._2, Set(guess(x._2)))).toMap)
                 
                 if wordList.size <= 10 then
-                    println(wordList.mkString(", "))
+                    if wordList.length == 0 then
+                        println("No answers match...")
+                    else
+                        println(wordList.mkString(", "))
+        else
+            println("Incorrect input...")
 }
