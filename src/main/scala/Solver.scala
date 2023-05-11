@@ -4,7 +4,19 @@ import scala.util.Random
 import scala.math.*
 
 object Solver extends App {
-    var wordList = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/wordle-answers-alphabetical.txt").getLines.toVector
+    var lang = readLine("Select language fi/en\n").toLowerCase()
+    while lang != "en" && lang != "fi" do
+        lang = readLine("Select language fi/en\n").toLowerCase()
+
+    var wordList = Vector[String]()
+
+    if lang == "en" then
+        wordList = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/wordle-answers-alphabetical.txt").getLines.toVector.map(word => word.toLowerCase())
+    else
+        println("aoäö")
+        println("äö".length)
+        wordList = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/kaikki-suomen-sanat.txt").getLines.toVector.map(word => word.toLowerCase()).filter(word => word.length == 5)
+
     val rand = Random()
 
     def merge(m1: Map[Int, Set[Char]], m2: Map[Int, Set[Char]]): Map[Int, Set[Char]] =
@@ -78,9 +90,14 @@ object Solver extends App {
 
     // todo: function for determining the best guess aka guess that minimizes the amount of correct answers.
     def bestGuess(wordList: Seq[String]): Unit = 
-        var validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/valid-wordle-words.txt").getLines.toVector
+        var validWords = Vector[String]()
+        if lang == "en" then
+            validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/valid-wordle-words.txt").getLines.toVector.filter(word => word.length == 5)
+        else
+            validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/kaikki-suomen-sanat.txt").getLines.toVector.filter(word => word.length == 5)
         val startSize = validWords.length.toDouble
         var sizes = scala.collection.mutable.Map[String, Vector[Int]]()
+        var sizeAverages = scala.collection.mutable.Map[String, Double]()
         var minOfMax = Int.MaxValue
         while validWords.nonEmpty do
             val current_word = validWords.head
@@ -97,8 +114,8 @@ object Solver extends App {
                     sizes(current_word) = sizes.get(current_word) match
                         case Some(value) => value :+ currentSize
                         case None => Vector(currentSize)
-                    if currentSize > minOfMax then
-                        condition = false
+                    //if currentSize > minOfMax then
+                    //    condition = false
                 i += 1
             val candidateSize = if sizes.keySet.contains(current_word) then sizes(current_word).max else Int.MaxValue
             if candidateSize < minOfMax then
@@ -112,13 +129,15 @@ object Solver extends App {
             if candidateSize == 1 && wordList.contains(current_word) then
                 println("\n" + current_word)
                 return
+            sizeAverages += current_word -> sizes(current_word).sum/sizes(current_word).length.toDouble
             validWords = validWords.tail
-        println("\n" + sizes.map((word, list) => (word, list.max)).toVector.sortBy(_._2).take(10).mkString(", "))
+        println("\nAverages: " + sizeAverages.toVector.sortBy(_._2).take(10).mkString(", "))
+        println("\nWorst case: " + sizes.map((word, list) => (word, list.max)).toVector.sortBy(_._2).take(10).mkString(", "))
         //sizes.map((word, list) => (word, list.max)).minBy(_._2)._1
 
     var truth = true
     while truth do
-        var guess = readLine("guess \n").toLowerCase()
+        var guess = readLine("guess\n").toLowerCase()
         if guess == "exit" then truth = false
         else if guess == "list" then
             println(wordList)
@@ -131,10 +150,10 @@ object Solver extends App {
                 val duration = (System.nanoTime() - t1) / 1e9d
                 println("Duration " + duration.toInt + "s")
         else if guess.length == 5 then
-            var colors = readLine("colors \n").toLowerCase()
+            var colors = readLine("colors\n").toLowerCase()
             while colors.length != 5 && colors.filter(char => char != 'g' || char != 'y' || char != ' ').length != 0 do
                 println("Incorrect input...")
-                colors = readLine("colors \n").toLowerCase()
+                colors = readLine("colors\n").toLowerCase()
             if colors == "ggggg" then
                 truth = false
             else
@@ -144,9 +163,15 @@ object Solver extends App {
                 indexOfGreens = merge(indexOfGreens, c.filter(x => x._1 == 'g').map(x => (x._2, Set(guess(x._2)))).toMap)
                 indexOfYellows = merge(indexOfYellows, c.filter(x => x._1 == 'y').map(x => (x._2, Set(guess(x._2)))).toMap)
                 indexOfBlanks = merge(indexOfBlanks, c.filter(x => x._1 == ' ').map(x => (x._2, Set(guess(x._2)))).toMap)
+
+                /*
+                println(indexOfGreens)
+                println(indexOfYellows)
+                println(indexOfBlanks)
+                */
                 
                 if wordList.size <= 10 then
-                    if wordList.length == 0 then
+                    if wordList.size == 0 then
                         println("No answers match...")
                     else
                         println(wordList.mkString(", "))
