@@ -1,6 +1,7 @@
 Hobbyproject mainly for solving wordle as efficiently and fast as possible.
 
 Wordle: https://en.wikipedia.org/wiki/Wordle
+
 NYT: https://www.nytimes.com/games/wordle/index.html
 
 ## sbt project compiled with Scala 3
