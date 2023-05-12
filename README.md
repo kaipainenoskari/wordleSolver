@@ -1,6 +1,8 @@
-Hobbyproject mainly for solving wordle as efficiently and fast as possible.
+Hobbyproject mainly for solving wordle and sanuli as efficiently and fast as possible.
 
 Wordle: https://en.wikipedia.org/wiki/Wordle
+
+Sanuli: https://sanuli.fi
 
 NYT: https://www.nytimes.com/games/wordle/index.html
 
