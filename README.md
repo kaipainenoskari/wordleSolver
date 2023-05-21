@@ -6,6 +6,10 @@ Sanuli: https://sanuli.fi
 
 NYT: https://www.nytimes.com/games/wordle/index.html
 
+## Prerequisites
+To run the project you will need Java (JDK 11) and sbt
+
+
 ## sbt project compiled with Scala 3
 
 ### Usage
