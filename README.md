@@ -1,10 +1,12 @@
-Hobbyproject mainly for solving wordle and sanuli as efficiently and fast as possible.
+## Wordle Solver
+
+Hobbyproject created to solve wordle and sanuli as efficiently and fast as possible.
 
 Wordle: https://en.wikipedia.org/wiki/Wordle
 
-Sanuli: https://sanuli.fi
-
 NYT: https://www.nytimes.com/games/wordle/index.html
+
+Sanuli: https://sanuli.fi
 
 ## Prerequisites
 To run the project you will need Java (JDK 11) and sbt
