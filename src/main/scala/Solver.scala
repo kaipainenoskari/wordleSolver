@@ -100,8 +100,6 @@ object Solver extends App {
                 && indexOfBlanks.forall((index, charSet) => charSet.forall(char => (word(index) != char) || (p(index) == ' ' && word(index) == char))))
 
 
-
-
         // todo: function for determining the best guess aka guess that minimizes the amount of correct answers.
         def bestGuess(wordList: Seq[String]): Unit = 
             var validWords = Vector[String]()

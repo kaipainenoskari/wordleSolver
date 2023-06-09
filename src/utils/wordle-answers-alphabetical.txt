@@ -147,6 +147,7 @@ baggy
 baker
 baler
 balmy
+balsa
 banal
 banjo
 barge
