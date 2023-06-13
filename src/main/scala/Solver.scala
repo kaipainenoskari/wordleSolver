@@ -11,15 +11,25 @@ object Solver extends App {
             lang = readLine("Select language fi/en\n").toLowerCase()
 
         var wordList = Vector[String]()
-        var wordLength = 5
+        var lengthString = readLine("Select length\n")
+        while !lengthString.forall(_.isDigit) do
+            lengthString = readLine("Select length\n")
+        val wordLength = lengthString.toInt
 
-        if lang == "en" then
-            wordList = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/wordle-answers-alphabetical.txt").getLines.toVector.map(word => word.toLowerCase())
+        if lang == "en" && wordLength == 5 then
+            wordList = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/wordle-answers-alphabetical.txt").getLines.toVector
+            .map(word => word.toLowerCase())
+            .filter(word => word.length == wordLength)
+        else if lang == "en" then
+            wordList = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/words_alpha.txt").getLines.toVector
+            .map(word => word.toLowerCase())
+            .filter(word => word.length == wordLength)
         else
-            wordLength = readLine("Select length (5 or 6)\n").toInt
-            while wordLength != 5 && wordLength != 6 do
-                wordLength = readLine("Select length (5 or 6)\n").toInt
-            wordList = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/kaikki-suomen-sanat.txt").getLines.toVector.map(string => string.toLowerCase.filter(char => char.toInt != 227 && char != '-').map(char => if char.toInt == 164 || char.toInt == 8222 then 'A' else if char.toInt == 182 || char.toInt == 8211 then 'O' else char)).filter(word => word.length == wordLength)
+            wordList = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/kaikki-suomen-sanat.txt").getLines.toVector
+            .map(string => string.toLowerCase.filter(char => char.toInt != 227 && char != '-')
+            .map(char => if char.toInt == 164 || char.toInt == 8222 then 'A'
+                         else if char.toInt == 182 || char.toInt == 8211 then 'O' else char))
+            .filter(word => word.length == wordLength)
 
         val rand = Random()
 
@@ -90,7 +100,9 @@ object Solver extends App {
                             for d <- word do
                                 for e <- word do
                                     for f <- word do
-                                        res = res.appended(a+b+c+d+e+f)
+                                        for g <- word do
+                                            for h <- word do
+                                                res = res.appended(a+b+c+d+e+f+g+h)
             res
 
         def minimizePermutations(word: String): Seq[String] =
@@ -103,8 +115,10 @@ object Solver extends App {
         // todo: function for determining the best guess aka guess that minimizes the amount of correct answers.
         def bestGuess(wordList: Seq[String]): Unit = 
             var validWords = Vector[String]()
-            if lang == "en" then
-                validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/valid-wordle-words.txt").getLines.toVector.filter(word => word.length == 5)
+            if lang == "en" && wordLength == 5 then
+                validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/valid-wordle-words.txt").getLines.toVector.filter(word => word.length == wordLength)
+            else if lang == "en" then
+                validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/words_alpha.txt").getLines.toVector.filter(word => word.length == wordLength)
             else
                 validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/kaikki-suomen-sanat.txt").getLines.toVector.map(string => string.toLowerCase.filter(char => char.toInt != 227 && char != '-').map(char => if char.toInt == 164 || char.toInt == 8222 then 'A' else if char.toInt == 182 || char.toInt == 8211 then 'O' else char)).filter(word => word.length == wordLength)
 
@@ -118,17 +132,16 @@ object Solver extends App {
                 print("\rRunning... %d %%".format(math.ceil(((startSize - sizeNow) / startSize) * 100).toInt))
                 //println(current_word)
                 
-                val perm = if (indexOfGreens.isEmpty && indexOfYellows.isEmpty && indexOfBlanks.isEmpty) then permutations((Vector("g", "y", " "))).toVector else minimizePermutations(current_word).toVector
+                val perm = if (indexOfGreens.isEmpty && indexOfYellows.isEmpty && indexOfBlanks.isEmpty) then
+                    permutations((Vector("g", "y", " "))).toVector else
+                    minimizePermutations(current_word).toVector
                 var i = 0
-                var condition = true
-                while i < perm.length && condition do
+                while i < perm.length do
                     val currentSize = filterWords(wordList, current_word, perm(i)).length
                     if currentSize != 0 then
                         sizes(current_word) = sizes.get(current_word) match
                             case Some(value) => value :+ currentSize
                             case None => Vector(currentSize)
-                        //if currentSize > minOfMax then
-                        //    condition = false
                     i += 1
                 val candidateSize = if sizes.keySet.contains(current_word) then sizes(current_word).max else Int.MaxValue
                 if candidateSize < minOfMax then
@@ -144,7 +157,11 @@ object Solver extends App {
                     return
                 sizeAverages += current_word -> sizes(current_word).sum/sizes(current_word).length.toDouble
                 validWords = validWords.tail
-            println("\nAverages: " + sizeAverages.toVector.map((word, average) => if wordList.contains(word) then (word, average - (1/wordList.length.toDouble)) else (word, average)).sortBy(_._2).take(10).map((word, average) => (word, (average * 100).round / 100.0)).mkString(", "))
+            println("\nAverages: " + sizeAverages.toVector
+            .map((word, average) => if wordList.contains(word) then
+                                    (word, average - (1/wordList.length.toDouble)) else
+                                    (word, average)).sortBy(_._2).take(10)
+                                    .map((word, average) => (word, (average * 100).round / 100.0)).mkString(", "))
             //sizes.map((word, list) => (word, list.max)).minBy(_._2)._1
 
         var truth = true
