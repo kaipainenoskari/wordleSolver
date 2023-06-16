@@ -116,11 +116,15 @@ object Solver extends App {
         def bestGuess(wordList: Seq[String]): Unit = 
             var validWords = Vector[String]()
             if lang == "en" && wordLength == 5 then
-                validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/valid-wordle-words.txt").getLines.toVector.filter(word => word.length == wordLength)
+                validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/valid-wordle-words.txt")
+                .getLines.toVector.filter(word => word.length == wordLength)
             else if lang == "en" then
-                validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/words_alpha.txt").getLines.toVector.filter(word => word.length == wordLength)
+                validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/words_alpha.txt")
+                .getLines.toVector.filter(word => word.length == wordLength)
             else
-                validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/kaikki-suomen-sanat.txt").getLines.toVector.map(string => string.toLowerCase.filter(char => char.toInt != 227 && char != '-').map(char => if char.toInt == 164 || char.toInt == 8222 then 'A' else if char.toInt == 182 || char.toInt == 8211 then 'O' else char)).filter(word => word.length == wordLength)
+                validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/kaikki-suomen-sanat.txt")
+                .getLines.toVector.map(string => string.toLowerCase.filter(char => char.toInt != 227 && char != '-').map(char => if char.toInt == 164 || char.toInt == 8222 then 'A' else if char.toInt == 182 || char.toInt == 8211 then 'O' else char))
+                .filter(word => word.length == wordLength)
 
             val startSize = validWords.length.toDouble
             var sizes = scala.collection.mutable.Map[String, Vector[Int]]()
