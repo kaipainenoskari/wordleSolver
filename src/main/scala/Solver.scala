@@ -2,10 +2,13 @@ import scala.io.Source
 import scala.io.StdIn.readLine
 import scala.util.Random
 import scala.math.*
+import scala.compiletime.ops.string
 
 object Solver extends App {
     var newGame = true
     while newGame do
+        val rand = Random()
+
         var lang = readLine("Select language fi/en\n").toLowerCase()
         while lang != "en" && lang != "fi" do
             lang = readLine("Select language fi/en\n").toLowerCase()
@@ -17,21 +20,19 @@ object Solver extends App {
         val wordLength = lengthString.toInt
 
         if lang == "en" && wordLength == 5 then
-            wordList = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/wordle-answers-alphabetical.txt").getLines.toVector
+            wordList = rand.shuffle(Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/wordle-answers-alphabetical.txt").getLines.toVector
             .map(word => word.toLowerCase())
-            .filter(word => word.length == wordLength)
+            .filter(word => word.length == wordLength))
         else if lang == "en" then
-            wordList = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/words_alpha.txt").getLines.toVector
+            wordList = rand.shuffle(Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/words_alpha.txt").getLines.toVector
             .map(word => word.toLowerCase())
-            .filter(word => word.length == wordLength)
+            .filter(word => word.length == wordLength))
         else
-            wordList = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/kaikki-suomen-sanat.txt").getLines.toVector
+            wordList = rand.shuffle(Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/kaikki-suomen-sanat.txt").getLines.toVector
             .map(string => string.toLowerCase.filter(char => char.toInt != 227 && char != '-')
             .map(char => if char.toInt == 164 || char.toInt == 8222 then 'A'
                          else if char.toInt == 182 || char.toInt == 8211 then 'O' else char))
-            .filter(word => word.length == wordLength)
-
-        val rand = Random()
+            .filter(word => word.length == wordLength))
 
         def merge(m1: Map[Int, Set[Char]], m2: Map[Int, Set[Char]]): Map[Int, Set[Char]] =
             (m1.toSeq ++ m2.toSeq).groupBy(_._1).map(x => (x._1, x._2.flatMap(y => y._2).toSet))
@@ -85,25 +86,21 @@ object Solver extends App {
 
 
         def permutations(word: Seq[String]): Seq[String] =
-            var res = List[String]()
-            if wordLength == 5 then
-                for a <- word do
-                    for b <- word do
-                        for c <- word do
-                            for d <- word do
-                                for e <- word do
-                                    res = res.appended(a+b+c+d+e)
-            else
-                for a <- word do
-                    for b <- word do
-                        for c <- word do
-                            for d <- word do
-                                for e <- word do
-                                    for f <- word do
-                                        for g <- word do
-                                            for h <- word do
-                                                res = res.appended(a+b+c+d+e+f+g+h)
-            res
+            // Call the inner function recursively to get all the permutations of "g", "y", " "
+            // there will be 3^n permutations when n == wordlength
+            
+            def inner(start: String, i: Int): Seq[String] =
+                //println(start)
+                //println(i)
+                var r = List[String]()
+                if i == wordLength then
+                    for l <- word do
+                        r = r.appended(start + l)
+                else
+                    for l <- word do
+                        r = r ++ inner(start + l, i + 1)
+                return r
+            return inner("", 1)
 
         def minimizePermutations(word: String): Seq[String] =
             val perm = permutations((Vector("g", "y", " "))).toVector
@@ -116,15 +113,15 @@ object Solver extends App {
         def bestGuess(wordList: Seq[String]): Unit = 
             var validWords = Vector[String]()
             if lang == "en" && wordLength == 5 then
-                validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/valid-wordle-words.txt")
-                .getLines.toVector.filter(word => word.length == wordLength)
+                validWords = rand.shuffle(Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/valid-wordle-words.txt")
+                .getLines.toVector.filter(word => word.length == wordLength))
             else if lang == "en" then
-                validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/words_alpha.txt")
-                .getLines.toVector.filter(word => word.length == wordLength)
+                validWords = rand.shuffle(Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/words_alpha.txt")
+                .getLines.toVector.filter(word => word.length == wordLength))
             else
-                validWords = Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/kaikki-suomen-sanat.txt")
+                validWords = rand.shuffle(Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/kaikki-suomen-sanat.txt")
                 .getLines.toVector.map(string => string.toLowerCase.filter(char => char.toInt != 227 && char != '-').map(char => if char.toInt == 164 || char.toInt == 8222 then 'A' else if char.toInt == 182 || char.toInt == 8211 then 'O' else char))
-                .filter(word => word.length == wordLength)
+                .filter(word => word.length == wordLength))
 
             val startSize = validWords.length.toDouble
             var sizes = scala.collection.mutable.Map[String, Vector[Int]]()
