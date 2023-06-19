@@ -102,8 +102,10 @@ object Solver extends App {
                 return r
             return inner("", 1)
 
+        val permutationSet = permutations((Vector("g", "y", " "))).toVector
+
         def minimizePermutations(word: String): Seq[String] =
-            val perm = permutations((Vector("g", "y", " "))).toVector
+            val perm = permutationSet
             perm.filter(p => indexOfGreens.forall((index, charSet) => charSet.forall(char => (p(index) == 'g' && word(index) == char) || (p(index) != 'g' && word(index) != char)))
                 && indexOfYellows.forall((index, charSet) => charSet.forall(char => (word(index) != char) || (p(index) != 'g' && word(index) == char)))
                 && indexOfBlanks.forall((index, charSet) => charSet.forall(char => (word(index) != char) || (p(index) == ' ' && word(index) == char))))
@@ -134,7 +136,7 @@ object Solver extends App {
                 //println(current_word)
                 
                 val perm = if (indexOfGreens.isEmpty && indexOfYellows.isEmpty && indexOfBlanks.isEmpty) then
-                    permutations((Vector("g", "y", " "))).toVector else
+                    permutationSet else
                     minimizePermutations(current_word).toVector
                 var i = 0
                 while i < perm.length do
