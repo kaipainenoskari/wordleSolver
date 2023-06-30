@@ -132,7 +132,10 @@ object Solver extends App {
             while validWords.nonEmpty do
                 val current_word = validWords.head
                 val sizeNow = validWords.length
-                print("\rRunning... %d %%".format(math.ceil(((startSize - sizeNow) / startSize) * 100).toInt))
+                val percent = math.ceil(((startSize - sizeNow) / startSize) * 100).toInt
+                val progress = "#" * percent
+                val toRun = "-" * (100 - percent)
+                print("\r[%s%s] %d %%".format(progress, toRun, percent))
                 //println(current_word)
                 
                 val perm = if (indexOfGreens.isEmpty && indexOfYellows.isEmpty && indexOfBlanks.isEmpty) then
@@ -180,6 +183,7 @@ object Solver extends App {
                     println(rand.shuffle(wordList).head)
                 else
                     val t1 = System.nanoTime()
+                    println("Running...")
                     bestGuess(wordList)
                     val duration = (System.nanoTime() - t1) / 1e9d
                     println("Duration " + duration.toInt + "s")
