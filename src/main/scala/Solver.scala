@@ -1,8 +1,7 @@
 import scala.io.Source
 import scala.io.StdIn.readLine
 import scala.util.Random
-import scala.math.*
-import scala.compiletime.ops.string
+import scala.math.ceil
 
 object Solver extends App {
     var newGame = true
@@ -148,7 +147,7 @@ object Solver extends App {
                 .getLines.toVector.map(string => string.toLowerCase.filter(char => char.toInt != 227 && char != '-').map(char => if char.toInt == 164 || char.toInt == 8222 then 'A' else if char.toInt == 182 || char.toInt == 8211 then 'O' else char))
                 .filter(word => word.length == wordLength))
             val startSize = validWords.length.toDouble
-            
+
             while validWords.nonEmpty do
                 val current_word = validWords.head
                 val sizeNow = validWords.length
