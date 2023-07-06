@@ -87,7 +87,7 @@ object Solver extends App {
 
         def permutations(word: Seq[String]): Seq[String] =
             // Call the inner function recursively to get all the permutations of "g", "y", " "
-            // there will be 3^n permutations when n == wordlength
+            // there will be 3^n permutations where n == wordlength
             
             def inner(start: String, i: Int): Seq[String] =
                 //println(start)
@@ -104,16 +104,39 @@ object Solver extends App {
 
         val permutationSet = permutations((Vector("g", "y", " "))).toVector
 
+        def getAllIndices(word: String, char: Char): Seq[Int] =
+            var indices = List[Int]()
+            var subString = word
+            var i = word.indexOf(char)
+            var j = 0
+            while i != -1 do
+                j += i
+                subString = subString.substring(i + 1)
+                indices = indices :+ j
+                j += 1
+                i = subString.indexOf(char)
+            indices
+
         def minimizePermutations(word: String): Seq[String] =
-            val perm = permutationSet
-            perm.filter(p => indexOfGreens.forall((index, charSet) => charSet.forall(char => (p(index) == 'g' && word(index) == char) || (p(index) != 'g' && word(index) != char)))
-                && indexOfYellows.forall((index, charSet) => charSet.forall(char => (word(index) != char) || (p(index) != 'g' && word(index) == char)))
-                && indexOfBlanks.forall((index, charSet) => charSet.forall(char => (word(index) != char) || (p(index) == ' ' && word(index) == char))))
+            var perm = permutationSet
+
+
+            perm = perm.filter(p =>
+                indexOfGreens.forall((index, charSet) =>
+                    charSet.forall(char => (p(index) == 'g' && word(index) == char) || (p(index) != 'g' && word(index) != char)))
+                && indexOfYellows.forall((index, charSet) =>
+                    charSet.forall(char => (word(index) != char) || (p(index) != 'g' && word(index) == char)))
+                && indexOfBlanks.forall((index, charSet) =>
+                    charSet.forall(char => word(index) != char || (word(index) == char && p(index) == ' ') )))
+            perm.filter(permutation => word.forall(char => !indexOfBlanks.values.toList.flatten.toSet.contains(char) || (getAllIndices(word, char).forall(index => permutation(index) == ' ') || (indexOfGreens.values.toList.flatten.contains(char) || indexOfYellows.values.toList.flatten.contains(char) ))))
 
 
         // todo: function for determining the best guess aka guess that minimizes the amount of correct answers.
-        def bestGuess(wordList: Seq[String]): Unit = 
+        def bestGuess(wordList: Seq[String]): Unit =
+            var sizes = scala.collection.mutable.Map[String, Vector[Int]]()
+            var sizeAverages = scala.collection.mutable.Map[String, Double]()
             var validWords = Vector[String]()
+
             if lang == "en" && wordLength == 5 then
                 validWords = rand.shuffle(Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/valid-wordle-words.txt")
                 .getLines.toVector.filter(word => word.length == wordLength))
@@ -124,11 +147,8 @@ object Solver extends App {
                 validWords = rand.shuffle(Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/kaikki-suomen-sanat.txt")
                 .getLines.toVector.map(string => string.toLowerCase.filter(char => char.toInt != 227 && char != '-').map(char => if char.toInt == 164 || char.toInt == 8222 then 'A' else if char.toInt == 182 || char.toInt == 8211 then 'O' else char))
                 .filter(word => word.length == wordLength))
-
             val startSize = validWords.length.toDouble
-            var sizes = scala.collection.mutable.Map[String, Vector[Int]]()
-            var sizeAverages = scala.collection.mutable.Map[String, Double]()
-            var minOfMax = Int.MaxValue
+            
             while validWords.nonEmpty do
                 val current_word = validWords.head
                 val sizeNow = validWords.length
@@ -136,11 +156,11 @@ object Solver extends App {
                 val progress = "#" * percent
                 val toRun = "-" * (100 - percent)
                 print("\r[%s%s] %d %%".format(progress, toRun, percent))
-                //println(current_word)
                 
                 val perm = if (indexOfGreens.isEmpty && indexOfYellows.isEmpty && indexOfBlanks.isEmpty) then
                     permutationSet else
                     minimizePermutations(current_word).toVector
+
                 var i = 0
                 while i < perm.length do
                     val currentSize = filterWords(wordList, current_word, perm(i)).length
@@ -150,8 +170,6 @@ object Solver extends App {
                             case None => Vector(currentSize)
                     i += 1
                 val candidateSize = if sizes.keySet.contains(current_word) then sizes(current_word).max else Int.MaxValue
-                if candidateSize < minOfMax then
-                    minOfMax = candidateSize
                     /*
                     println("word -> " + current_word)
                     println("worst case length -> " + minOfMax)
