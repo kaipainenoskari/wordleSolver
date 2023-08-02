@@ -119,7 +119,6 @@ object Solver extends App {
         def minimizePermutations(word: String): Seq[String] =
             var perm = permutationSet
 
-
             perm = perm.filter(p =>
                 indexOfGreens.forall((index, charSet) =>
                     charSet.forall(char => (p(index) == 'g' && word(index) == char) || (p(index) != 'g' && word(index) != char)))
@@ -135,6 +134,10 @@ object Solver extends App {
             var sizes = scala.collection.mutable.Map[String, Vector[Int]]()
             var sizeAverages = scala.collection.mutable.Map[String, Double]()
             var validWords = Vector[String]()
+            var wordFilterTime = 0L
+            var permutationTime = 0L
+            var everythingElse = System.nanoTime()
+            var printTime = 0L
 
             if lang == "en" && wordLength == 5 then
                 validWords = rand.shuffle(Source.fromFile("C:/Users/oskar/wordlesolver/src/utils/valid-wordle-words.txt")
@@ -149,20 +152,26 @@ object Solver extends App {
             val startSize = validWords.length.toDouble
 
             while validWords.nonEmpty do
+                val p1 = System.nanoTime()
                 val current_word = validWords.head
                 val sizeNow = validWords.length
                 val percent = math.ceil(((startSize - sizeNow) / startSize) * 100).toInt
                 val progress = "#" * percent
                 val toRun = "-" * (100 - percent)
                 print("\r[%s%s] %d %%".format(progress, toRun, percent))
+                printTime += System.nanoTime() - p1
                 
+                val t1 = System.nanoTime()
                 val perm = if (indexOfGreens.isEmpty && indexOfYellows.isEmpty && indexOfBlanks.isEmpty) then
                     permutationSet else
                     minimizePermutations(current_word).toVector
+                permutationTime += System.nanoTime() - t1
 
                 var i = 0
                 while i < perm.length do
+                    val t1 = System.nanoTime()
                     val currentSize = filterWords(wordList, current_word, perm(i)).length
+                    wordFilterTime += System.nanoTime() - t1
                     if currentSize != 0 then
                         sizes(current_word) = sizes.get(current_word) match
                             case Some(value) => value :+ currentSize
@@ -180,6 +189,16 @@ object Solver extends App {
                     return
                 sizeAverages += current_word -> sizes(current_word).sum/sizes(current_word).length.toDouble
                 validWords = validWords.tail
+            //printTime -= wordFilterTime + permutationTime
+
+            everythingElse = System.nanoTime() - everythingElse - wordFilterTime - permutationTime - printTime
+
+            println(s"\nFilter: ${(wordFilterTime / 1e9d).round} s")
+            println(s"Permutation: ${(permutationTime / 1e9d).round} s")
+            println(s"Printing: ${(printTime / 1e9d).round} s")
+            println(s"Everything else: ${(everythingElse / 1e9d).round} s")
+            println(s"Summed: ${((wordFilterTime + permutationTime + everythingElse + printTime) / 1e9d).round}s")
+
             println("\nAverages: " + sizeAverages.toVector
             .map((word, average) => if wordList.contains(word) then
                                     (word, average - (1/wordList.length.toDouble)) else
